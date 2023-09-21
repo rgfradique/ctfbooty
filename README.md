@@ -1,0 +1,2 @@
+# ctfbooty
+Simple CTF Bot
