@@ -17,7 +17,9 @@ On joinning a server, it creates a "CTF Player" role and:
 
 ## Commands:
 ```
-Call the bot with: $ctf
+Call the bot with:
+$ctf
+Only callable from within bot-chat channel
 $ctf create [ctf name] - Creates a new ctf
 $ctf help - Displays the help message
 
