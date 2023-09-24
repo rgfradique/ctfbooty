@@ -198,6 +198,34 @@ async def initial_guild_setup(g):
         reg_channel = await create_channel(ctf_ctg, register_channel_name,"CTF Role registration channel")
         await reg_channel.send("This is the registration channel for the CTF role. If you select this you'll be pinged for all ctf related news")
         await reg_channel.send("Click here to setup your alerts and role.", view=RoleView())
+        await reg_channel.send("""For help on how to use the bot type **$ctf help**.
+A typical use case would be:
+**$ctf create [ctf name]** to make a new ctf channel.
+From within that channel call **$ctf creds [username] [password]** to share and pin the team credentials.
+Then call **$ctf add [chall name]** to add new challenges.
+**$ctf ls** from within a CTF channel will list all active challenges.
+From within a challenge thread you can then use **$ctf solve** to mark it as solved, or **$ctf unsolve** if it turns out it's still not solved. You can also call **$ctf rm** to remove that challenge.
+When a CTF is finished you can call **$ctf archive** from within the CTF channel to move it to the Archive category. This makes it read only.
+If a CTF is added by mistake just call **$ctf rmctf** from within its channel to delete it""")
+        await reg_channel.send("""TL,DR:
+Call the bot with:
+    **$ctf**
+
+Only callable from within bot-chat channel:
+    **$ctf create [ctf name]** - Creates a new ctf
+    **$ctf help** - Displays the help message
+
+Only callable from within a CTF channel
+    **$ctf creds [user] [password]** - Sends and pins a message containing the set user:password credentials for the team, for that particular CTF. Re-running the same command overwrites the set credentials
+    **$ctf add [chall name]** - Creates a new challenge thread, unsolved by default
+    **$ctf ls** - Lists all challenges for that CTF
+    **$ctf rmctf** - Deletes the CTF
+    **$ctf archive** - Moves the CTF channel to the archive category, making it Read-Only
+
+Only callable from within a Challenge thread
+    **$ctf rm** - Deletes the current challenge thread
+    **$ctf solve** - Sets the challenge as solved
+    **$ctf unsolve** - Sets the challenge as unsolved""")
     bot_channel = await create_channel(ctf_ctg, bot_channel_name,"Bot commands channel")
 
     #create running CTF cat and set perms
@@ -237,7 +265,7 @@ async def create(message, *, ctf_name):
 #Delete ctf channel
 @client.command()
 async def rmctf(message):
-    """Deletes a CTF Channel. Be careful using this, only used for mistakes, otherwise archive the CTF"""
+    """Deletes a CTF Channel. Only usable from within a CTF channel. Be careful using this, only used for mistakes, otherwise archive the CTF"""
     if not check_ctfs_channels(message):
         await message.send("Use only on a CTF channel")
         return
@@ -283,6 +311,7 @@ async def creds(message, login, password):
 #Set channel as solved
 @client.command()
 async def solve(message):
+    """Only usable from within a challenge thread. Sets the challenge as solved"""
     if check_chall_thread(message):
         if message.channel.type == discord.ChannelType.public_thread:
             uns_name = strip_status(str(message.channel.name))
@@ -291,6 +320,7 @@ async def solve(message):
 #Set channel as unsolved
 @client.command()
 async def unsolve(message):
+    """Only usable from within a challenge thread. Sets the challenge as unsolved"""
     if check_chall_thread(message):
         if message.channel.type == discord.ChannelType.public_thread:
             uns_name = strip_status(str(message.channel.name))
@@ -299,7 +329,7 @@ async def unsolve(message):
 #List current challenges on this CTF
 @client.command()
 async def ls(message):
-    """List current challenges and status"""
+    """Only usable from within a CTF channel. List current challenges and status"""
     if check_ctfs_channels(message):
         thrs = message.channel.threads
         if thrs:
@@ -316,7 +346,7 @@ async def ls(message):
 #Archive CTF as read only
 @client.command()
 async def archive(message):
-    """Archives a CTF channel. Archives are Read Only."""
+    """Only usable from within a CTF channel. Archives a CTF channel. Archives are Read Only."""
     if check_ctfs_channels(message):
         archive_ctg = discord.utils.get(message.guild.categories, name=archive_category)
         await message.channel.move(beginning=True,category=archive_ctg,sync_permissions=True)
